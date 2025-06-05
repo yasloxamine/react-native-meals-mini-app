@@ -1,28 +1,45 @@
 import { View, Text, Image, StyleSheet, ScrollView } from "react-native";
-import { useLayoutEffect } from 'react';
+import { useContext ,useLayoutEffect } from "react";
 
 import { MEALS } from "../data/dummy-data";
 import MealDetails from "./MealDetails";
 import Subtitle from "./MealDetail/Subtitle";
 import List from "./MealDetail/List";
 import IconButton from "./IconButton";
+import { FavoritesContext } from "../store/context/favorites-context";
 
 function MealDetailsScreen({ route, navigation }) {
+
+  const favoriteMealsCtx = useContext(FavoritesContext);
+
   const mealId = route.params.mealId;
 
   const selectedMeal = MEALS.find((meal) => meal.id === mealId);
 
-function HeaderButtonPressHandler(){
-    console.log("pressed");
-}
 
-  useLayoutEffect(()=>{
+  const mealIsFavorite = favoriteMealsCtx.ids.includes(mealId);
+
+  function changeFavoritesStatusHandler() {
+    if(mealIsFavorite){
+      favoriteMealsCtx.removeFavorite(mealId);
+    }else{
+      favoriteMealsCtx.addFavorite(mealId);
+    }
+  }
+
+  useLayoutEffect(() => {
     navigation.setOptions({
-        headerRight: () => {
-            return <IconButton icon="star" color="white" onPress={HeaderButtonPressHandler} />
-        }
+      headerRight: () => {
+        return (
+          <IconButton
+            icon={mealIsFavorite ? 'star' : 'star-outline'}
+            color="white"
+            onPress={changeFavoritesStatusHandler}
+          />
+        );
+      },
     });
-  },[navigation,HeaderButtonPressHandler]);
+  }, [navigation, changeFavoritesStatusHandler]);
 
   return (
     <ScrollView style={styles.rootContainer}>
@@ -34,14 +51,13 @@ function HeaderButtonPressHandler(){
         affordability={selectedMeal.affordability}
       />
       <View style={styles.listOuterContainer}>
-      <View style={styles.listContainer}>
-      <Subtitle>Ingredients</Subtitle>
-      <List data={selectedMeal.ingredients} />
-      <Subtitle>Steps</Subtitle>
-      <List data={selectedMeal.steps} /> 
+        <View style={styles.listContainer}>
+          <Subtitle>Ingredients</Subtitle>
+          <List data={selectedMeal.ingredients} />
+          <Subtitle>Steps</Subtitle>
+          <List data={selectedMeal.steps} />
+        </View>
       </View>
-      </View>
-      
     </ScrollView>
   );
 }
@@ -49,9 +65,9 @@ function HeaderButtonPressHandler(){
 export default MealDetailsScreen;
 
 const styles = StyleSheet.create({
-    rootContainer:{
-        marginBottom:32
-    },
+  rootContainer: {
+    marginBottom: 32,
+  },
   image: {
     width: "100%",
     height: 350,
@@ -62,10 +78,10 @@ const styles = StyleSheet.create({
     margin: 8,
     textAlign: "center",
   },
-  listContainer:{
-    width:'80%'
+  listContainer: {
+    width: "80%",
   },
-  listOuterContainer:{
-    alignItems:'center',
-  }
+  listOuterContainer: {
+    alignItems: "center",
+  },
 });
